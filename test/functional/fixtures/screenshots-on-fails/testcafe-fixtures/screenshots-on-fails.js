@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { saveWindowState, restoreWindowState } from '../../../esm-utils/window-helpers.js';
+import { saveWindowState, restoreWindowState, writeScreenshotMeta } from '../../../esm-utils/window-helpers.js';
 
 
 // NOTE: to preserve callsites, add new tests AFTER the existing ones
@@ -34,6 +34,7 @@ test
         await t.maximizeWindow();
     })
     .after(t => restoreWindowState(t))
-    ('Crop screenshots', () => {
+    ('Crop screenshots', async () => {
+        await writeScreenshotMeta();
         throw new Error('Custom error');
     });
