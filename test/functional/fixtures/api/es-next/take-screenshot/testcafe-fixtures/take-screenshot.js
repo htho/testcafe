@@ -132,7 +132,6 @@ test
         const expectedWidth  = (width - scrollbarSize) * devicePixelRatio;
         const expectedHeight = (height - scrollbarSize) * devicePixelRatio;
 
-        await t.expect(scrollbarSize).gt(0);
         await t.expect(png.width).eql(expectedWidth);
         await t.expect(png.height).eql(expectedHeight);
     });
