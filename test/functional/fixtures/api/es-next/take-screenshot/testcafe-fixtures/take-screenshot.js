@@ -4,6 +4,7 @@ import {
     saveWindowState,
     restoreWindowState,
     writeScreenshotMeta,
+    getWindowDevicePixelRatio,
 } from '../../../../../esm-utils/window-helpers.js';
 import quarantineScope from './quarantineScope.js';
 import sanitizeFilename from 'sanitize-filename';
@@ -117,17 +118,19 @@ test
 
         const ua             = await getUserAgent();
         const parsedUA       = parseUserAgent(ua);
-        const screenshotName = 'custom/' + parsedUA.name + '.png';
+        const screenshotFile = 'custom/' + parsedUA.name + '.png';
 
-        const scrollbarSize = await getScrollbarSize();
+        const scrollbarSize    = await getScrollbarSize();
+        const devicePixelRatio = await getWindowDevicePixelRatio();
 
         await t.hover('#target');
-        await t.takeScreenshot(screenshotName);
+        await writeScreenshotMeta();
+        await t.takeScreenshot(screenshotFile);
 
-        const png = await readPngFile(join(config.testScreenshotsDir, screenshotName));
+        const png = await readPngFile(join(config.testScreenshotsDir, screenshotFile));
 
-        const expectedWidth  = width - scrollbarSize;
-        const expectedHeight = height - scrollbarSize;
+        const expectedWidth  = (width - scrollbarSize) * devicePixelRatio;
+        const expectedHeight = (height - scrollbarSize) * devicePixelRatio;
 
         await t.expect(scrollbarSize).gt(0);
         await t.expect(png.width).eql(expectedWidth);
