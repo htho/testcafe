@@ -1,4 +1,7 @@
+import config from '../config';
 import { ClientFunction } from 'testcafe';
+import { writeFile, mkdir } from 'fs/promises';
+import { dirname } from 'path';
 
 
 const getWindowState = ClientFunction(() => ({
@@ -23,12 +26,23 @@ async function restoreWindowState (t) {
         await t.resizeWindow(t.ctx._savedWindowState.width, t.ctx._savedWindowState.height);
 }
 
-const getWindowWidth  = ClientFunction(() => window.innerWidth);
-const getWindowHeight = ClientFunction(() => window.innerHeight);
+const getWindowWidth            = ClientFunction(() => window.innerWidth);
+const getWindowHeight           = ClientFunction(() => window.innerHeight);
+const getWindowDevicePixelRatio = ClientFunction(() => window.devicePixelRatio);
+
+const writeScreenshotMeta = async () => {
+    const devicePixelRatio   = await getWindowDevicePixelRatio();
+    const metaData           = { devicePixelRatio };
+
+    await mkdir(dirname(config.testScreenshotsMetaFile), { recursive: true });
+    await writeFile(config.testScreenshotsMetaFile, JSON.stringify(metaData));
+};
 
 export {
     saveWindowState,
     restoreWindowState,
     getWindowWidth,
     getWindowHeight,
+    getWindowDevicePixelRatio,
+    writeScreenshotMeta,
 };

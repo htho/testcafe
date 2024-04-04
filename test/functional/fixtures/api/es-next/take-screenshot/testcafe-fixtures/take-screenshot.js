@@ -1,6 +1,10 @@
 import { ClientFunction } from 'testcafe';
 import { parseUserAgent } from '../../../../../../../lib/utils/parse-user-agent.js';
-import { saveWindowState, restoreWindowState } from '../../../../../esm-utils/window-helpers.js';
+import {
+    saveWindowState,
+    restoreWindowState,
+    writeScreenshotMeta,
+} from '../../../../../esm-utils/window-helpers.js';
 import quarantineScope from './quarantineScope.js';
 import sanitizeFilename from 'sanitize-filename';
 import { readPngFile } from '../../../../../../../lib/utils/promisified-functions.js';
@@ -94,6 +98,7 @@ test
         const ua       = await getUserAgent();
         const parsedUA = parseUserAgent(ua);
 
+        await writeScreenshotMeta();
         await t.takeScreenshot('custom/' + parsedUA.name + '.png');
     });
 

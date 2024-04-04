@@ -8,6 +8,7 @@ const config                = require('./config.js');
 const { readPngFile }       = require('../../lib/utils/promisified-functions');
 const { parseUserAgent }    = require('../../lib/utils/parse-user-agent');
 const { MARK_RIGHT_MARGIN } = require('../../lib/screenshots/constants.js');
+const { readFile }          = require('fs/promises');
 
 
 const SCREENSHOTS_PATH               = config.testScreenshotsDir;
@@ -62,8 +63,20 @@ function getScreenshotFilesCount (dir, customPath) {
     return results;
 }
 
+async function readScreenshotMeta () {
+    const metaFile = await readFile(config.testScreenshotsMetaFile);
+
+    return JSON.parse(metaFile.toString());
+}
+
 async function checkScreenshotFileCropped (filePath) {
     const png = await readPngFile(filePath);
+    const meta = await readScreenshotMeta();
+    const devicePixelRatio = meta.devicePixelRatio;
+
+    // NOTE: The implementation is parametric.
+    // It depends on the actual size of the screenshot
+    // and the devicePixelRatio.
 
     // NOTE: Follwoing comments will use actual values
     // in relation to this (16:9) "image".
@@ -95,10 +108,10 @@ async function checkScreenshotFileCropped (filePath) {
     const yMax = height - 1;
 
     // safeBorder = 1
-    const safeBorder = MARK_RIGHT_MARGIN;
+    const safeBorder = MARK_RIGHT_MARGIN * devicePixelRatio;
 
     // innerMargin = 3
-    const innerMargin = 50;
+    const innerMargin = 50 * devicePixelRatio;
 
     // lastInnerMargin = 2
     const lastInnerMargin = innerMargin - 1;
@@ -184,7 +197,7 @@ function checkScreenshotImages (forError, customPath, predicate, expectedScreens
     if (!isDirExists(SCREENSHOTS_PATH))
         return false;
 
-    const taskDirs = fs.readdirSync(SCREENSHOTS_PATH);
+    const taskDirs = fs.readdirSync(SCREENSHOTS_PATH).filter(entry => !entry.endsWith('.json'));
 
     if (!taskDirs || !taskDirs[0] || taskDirs.length !== 1)
         return false;
