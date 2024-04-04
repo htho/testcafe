@@ -62,26 +62,67 @@ function getScreenshotFilesCount (dir, customPath) {
     return results;
 }
 
-function checkScreenshotFileCropped (filePath) {
-    return readPngFile(filePath)
-        .then(function (png) {
-            const width  = png.width;
-            const height = png.height;
+async function checkScreenshotFileCropped (filePath) {
+    const png = await readPngFile(filePath);
 
-            // NOTE: sometimes an appearing dialog can cover an edge of the browser. Try to check all edges
-            // NOTE: tests do not work on retina displays since test code is not aware of this
-            // NOTE: tests check for absolute rgb values therefore the display needs to be set to an sRGB color profile (macOS)
-            return (
-                // topLeft
-                hasPixel(png, RED_PIXEL, 0, 0) && hasPixel(png, RED_PIXEL, 49, 49) && hasPixel(png, GREEN_PIXEL, 50, 50) ||
-                // topRight
-                hasPixel(png, RED_PIXEL, width - 1, 0) && hasPixel(png, RED_PIXEL, width - 50, 49) && hasPixel(png, GREEN_PIXEL, width - 51, 50) ||
-                // bottomRightRounded
-                hasPixel(png, RED_PIXEL, width - 1 - MARK_RIGHT_MARGIN, height - 1) && hasPixel(png, RED_PIXEL, width - 1, height - 1 - MARK_RIGHT_MARGIN) && hasPixel(png, RED_PIXEL, width - 50, height - 50) && hasPixel(png, GREEN_PIXEL, width - 51, height - 51) ||
-                // bottomLeftRounded
-                hasPixel(png, RED_PIXEL, MARK_RIGHT_MARGIN, height - 1) && hasPixel(png, RED_PIXEL, 0, height - 1 - MARK_RIGHT_MARGIN) && hasPixel(png, RED_PIXEL, 49, height - 50) && hasPixel(png, GREEN_PIXEL, 50, height - 51)
-            );
-        });
+    // NOTE: Follwoing comments will use actual values
+    // in relation to this (16:9) "image".
+    // These values are used to explain/verify the
+    // parameters used to determine the corners
+    // of the sceenshot.
+    //
+    //   0123456789abcdef  <- Column-Index
+    // 0 RrrrrrrrrrrrrrrR
+    // 1 rrrrrrrrrrrrrrrr  R/r: red pixel
+    // 2 rrRrrrrrrrrrrRrr  G/g: green pixel
+    // 3 rrrGggggggggGrrr  R/G: pixels checked
+    // 4 rrrggggggggggrrr  .  : rounded corner in macOS
+    // 5 rrrGggggggggGrrr
+    // 6 rrRrrrrrrrrrrRrr
+    // 7 RrrrrrrrrrrrrrrR
+    // 8 .RrrrrrrrrrrrrR.
+
+    // width = 16
+    const width = png.width;
+
+    // xMax = 15
+    const xMax = width - 1;
+
+    // height = 9
+    const height = png.height;
+
+    // yMax = 8
+    const yMax = height - 1;
+
+    // safeBorder = 1
+    const safeBorder = MARK_RIGHT_MARGIN;
+
+    // innerMargin = 3
+    const innerMargin = 50;
+
+    // lastInnerMargin = 2
+    const lastInnerMargin = innerMargin - 1;
+
+
+    // topLeft    = { outer: [0, 0], lastOuter: [2              , 2              ], inner: [3          , 3          ] };
+    const topLeft = { outer: [0, 0], lastOuter: [lastInnerMargin, lastInnerMargin], inner: [innerMargin, innerMargin] };
+
+    // topLeft     = { outer: [15  , 0], lastOuter: [12                    , 2              ], inner: [12                , 3          ] };
+    const topRight = { outer: [xMax, 0], lastOuter: [xMax - lastInnerMargin, lastInnerMargin], inner: [xMax - innerMargin, innerMargin] };
+
+    // roundedBottomLeft    = { outerTop: [0, 7                ], outerRight: [1         , 8   ], lastOuter: [2              , 6                     ], inner: [3          , 5                 ] };
+    const roundedBottomLeft = { outerTop: [0, yMax - safeBorder], outerRight: [safeBorder, yMax], lastOuter: [lastInnerMargin, yMax - lastInnerMargin], inner: [innerMargin, yMax - innerMargin] };
+
+    // roundedBottomRight    = { outerTop: [15  , 7                ], outerLeft: [14               , 8   ], lastOuter: [13                    , 6                     ], inner: [12                , 5                 ] };
+    const roundedBottomRight = { outerTop: [xMax, yMax - safeBorder], outerLeft: [xMax - safeBorder, yMax], lastOuter: [xMax - lastInnerMargin, yMax - lastInnerMargin], inner: [xMax - innerMargin, yMax - innerMargin] };
+
+    // NOTE: sometimes an appearing dialog can cover an edge of the browser. Try to check all edges
+    return (
+        hasPixel(png, RED_PIXEL, ...topLeft.outer) && hasPixel(png, RED_PIXEL, ...topLeft.lastOuter) && hasPixel(png, GREEN_PIXEL, ...topLeft.inner) ||
+        hasPixel(png, RED_PIXEL, ...topRight.outer) && hasPixel(png, RED_PIXEL, ...topRight.lastOuter) && hasPixel(png, GREEN_PIXEL, ...topRight.inner) ||
+        hasPixel(png, RED_PIXEL, ...roundedBottomLeft.outerTop) && hasPixel(png, RED_PIXEL, ...roundedBottomLeft.outerRight) && hasPixel(png, RED_PIXEL, ...roundedBottomLeft.lastOuter) && hasPixel(png, GREEN_PIXEL, ...roundedBottomLeft.inner) ||
+        hasPixel(png, RED_PIXEL, ...roundedBottomRight.outerTop) && hasPixel(png, RED_PIXEL, ...roundedBottomRight.outerLeft) && hasPixel(png, RED_PIXEL, ...roundedBottomRight.lastOuter) && hasPixel(png, GREEN_PIXEL, ...roundedBottomRight.inner)
+    );
 }
 
 function checkScreenshotFileFullPage (filePath) {
