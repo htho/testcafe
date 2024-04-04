@@ -27,10 +27,19 @@ const VIDEO_FILES_GLOB = path.posix.join(VIDEOS_PATH, '**', '*');
 function hasPixel (png, pixel, x, y) {
     const baseIndex = (png.width * y + x) * 4;
 
-    return png.data[baseIndex] === pixel[0] &&
-           png.data[baseIndex + 1] === pixel[1] &&
-           png.data[baseIndex + 2] === pixel[2] &&
-           png.data[baseIndex + 3] === pixel[3];
+    // NOTE: A display might use a color profile.
+    // Color profiles for Displays might lead to problems,
+    // where #FF000000 actually is ##FE000000.
+    // The test would fail, although the color matches.
+
+    return binaryByte(png.data[baseIndex + 0]) === binaryByte(pixel[0]) &&
+           binaryByte(png.data[baseIndex + 1]) === binaryByte(pixel[1]) &&
+           binaryByte(png.data[baseIndex + 2]) === binaryByte(pixel[2]) &&
+           binaryByte(png.data[baseIndex + 3]) === binaryByte(pixel[3]);
+}
+
+function binaryByte (value) {
+    return value > 128;
 }
 
 function getScreenshotFilesCount (dir, customPath) {
