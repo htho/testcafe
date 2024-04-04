@@ -133,7 +133,8 @@ test
         const expectedHeight = (height - scrollbarSize) * devicePixelRatio;
 
         await t.expect(png.width).eql(expectedWidth);
-        await t.expect(png.height).eql(expectedHeight);
+        // NOTE: within range to account for the cropped last row of pixels
+        await t.expect(png.height).within(expectedHeight - 1, expectedHeight);
     });
 
 test('Should add default extension', async t => {
