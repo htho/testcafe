@@ -25,18 +25,23 @@ const RED_PIXEL                      = [255, 0, 0, 255];
 const VIDEOS_PATH      = config.testVideosDir;
 const VIDEO_FILES_GLOB = path.posix.join(VIDEOS_PATH, '**', '*');
 
-function hasPixel (png, pixel, x, y) {
+function getPixel (png, x, y) {
     const baseIndex = (png.width * y + x) * 4;
+
+    return png.data.slice(baseIndex, baseIndex + 4);
+}
+
+function hasPixel (png, refPixel, x, y) {
+    const pngPixel = getPixel(png, x, y);
 
     // NOTE: A display might use a color profile.
     // Color profiles for Displays might lead to problems,
     // where #FF000000 actually is ##FE000000.
     // The test would fail, although the color matches.
+    const binPngPixel = pngPixel.map(binaryByte);
+    const binRefPixel = refPixel.map(binaryByte);
 
-    return binaryByte(png.data[baseIndex + 0]) === binaryByte(pixel[0]) &&
-           binaryByte(png.data[baseIndex + 1]) === binaryByte(pixel[1]) &&
-           binaryByte(png.data[baseIndex + 2]) === binaryByte(pixel[2]) &&
-           binaryByte(png.data[baseIndex + 3]) === binaryByte(pixel[3]);
+    return binPngPixel.every((v, i) => binRefPixel[i] === v);
 }
 
 function binaryByte (value) {
@@ -381,16 +386,23 @@ exports.checkScreenshotFileFullPage = function (forError, customPath) {
 };
 
 exports.isScreenshotsEqual = function (customPath, referenceImagePathGetter) {
-    return checkScreenshotImages(false, customPath, function (screenshotFilePath) {
-        const screenshotContent = fs.readFileSync(screenshotFilePath);
+    return checkScreenshotImages(false, customPath, async function (screenshotFilePath) {
+        const screenshotContent = await readPngFile(screenshotFilePath);
 
         const referenceImagePath = isFunction(referenceImagePathGetter)
             ? referenceImagePathGetter(screenshotFilePath)
             : referenceImagePathGetter;
 
-        const referenceImageContent = fs.readFileSync(referenceImagePath);
+        const referenceImageContent = await readPngFile(referenceImagePath);
 
-        return screenshotContent.equals(referenceImageContent);
+        for (let x = 0; x < referenceImageContent.width; x++) {
+            for (let y = 0; y < referenceImageContent.height; y++) {
+                const refPixel = getPixel(referenceImageContent, x, y);
+
+                if (!hasPixel(screenshotContent, refPixel, x, y)) return false;
+            }
+        }
+        return true;
     });
 };
 
