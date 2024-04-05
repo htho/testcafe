@@ -46,7 +46,7 @@ function hasPixel (png, refPixel, x, y) {
 }
 
 function binaryByte (value) {
-    return value > 128;
+    return value > 128 ? 0 : 1;
 }
 
 function getScreenshotFilesCount (dir, customPath) {
@@ -397,11 +397,20 @@ exports.isScreenshotsEqual = function (customPath, referenceImagePathGetter) {
 
         const referenceImageContent = await readPngFile(referenceImagePath);
 
+        const meta = await readScreenshotMeta();
+        const devicePixelRatio = meta.devicePixelRatio;
+
+        // NOTE: this only works for integer values for devicePixelRatio
         for (let x = 0; x < referenceImageContent.width; x++) {
             for (let y = 0; y < referenceImageContent.height; y++) {
                 const refPixel = getPixel(referenceImageContent, x, y);
 
-                if (!hasPixel(screenshotContent, refPixel, x, y)) return false;
+                if (!hasPixel(
+                    screenshotContent,
+                    refPixel,
+                    x * devicePixelRatio,
+                    y * devicePixelRatio
+                )) return false;
             }
         }
         return true;
