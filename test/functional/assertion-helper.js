@@ -160,11 +160,12 @@ function checkScreenshotFileFullPage (filePath) {
         });
 }
 
-function checkScreenshotFileIsNotWhite (filePath) {
-    return readPngFile(filePath)
-        .then(function (png) {
-            return png.data.indexOf(Buffer.from(RED_PIXEL)) > -1 && png.data.indexOf(Buffer.from(GREEN_PIXEL)) > -1;
-        });
+async function checkScreenshotFileIsNotWhite (filePath) {
+    const png = await readPngFile(filePath);
+    const binaryPngData = png.data.map(binaryByte);
+
+    return binaryPngData.includes(Buffer.from(RED_PIXEL).map(binaryByte)) &&
+        binaryPngData.includes(Buffer.from(GREEN_PIXEL).map(binaryByte));
 }
 
 function isDirExists (folderPath) {
