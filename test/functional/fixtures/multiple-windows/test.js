@@ -142,7 +142,10 @@ describe('Multiple windows', () => {
                 return assertScreenshotColor('3.png', GREEN_PIXEL);
             })
             .then(() => {
-                assertionHelper.removeScreenshotDir();
+                return assertionHelper.removeScreenshotDir();
+            })
+            .then(() => {
+                return assertionHelper.removeScreenshotsMetaFile();
             });
     });
 

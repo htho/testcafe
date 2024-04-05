@@ -236,7 +236,7 @@ module.exports = {
 
     testScreenshotsDir:      '___test-screenshots___',
     testVideosDir:           '___test-videos___',
-    testScreenshotsMetaFile: '___test-screenshots___/screenshot-meta.json',
+    testScreenshotsMetaFile: '___test-screenshot-meta___.json',
 
     hasBrowser (alias) {
         return this.currentEnvironment.browsers.some(browser => browser.alias.includes(alias));

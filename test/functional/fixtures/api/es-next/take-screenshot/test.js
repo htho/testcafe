@@ -52,6 +52,7 @@ const getReporter = function (scope) {
 
 describe('[API] t.takeScreenshot()', function () {
     afterEach(assertionHelper.removeScreenshotDir);
+    afterEach(assertionHelper.removeScreenshotsMetaFile);
 
     if (config.useLocalBrowsers) {
         it('Should take a screenshot', function () {
@@ -355,6 +356,7 @@ describe('[API] t.takeScreenshot()', function () {
 
 describe('[API] t.takeElementScreenshot()', function () {
     afterEach(assertionHelper.removeScreenshotDir);
+    afterEach(assertionHelper.removeScreenshotsMetaFile);
 
     if (config.useLocalBrowsers) {
         // NOTE: is the problem not in taking screenshot but in overrided scroll automation?
@@ -678,6 +680,7 @@ describe('[API] t.takeElementScreenshot()', function () {
 
 describe('[API] Take full page screenshots', function () {
     afterEach(assertionHelper.removeScreenshotDir);
+    afterEach(assertionHelper.removeScreenshotsMetaFile);
 
     if (config.useLocalBrowsers && config.useHeadlessBrowsers) {
         it('Should take a full page screenshot via API', function () {

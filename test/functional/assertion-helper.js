@@ -12,6 +12,7 @@ const { readFile }          = require('fs/promises');
 
 
 const SCREENSHOTS_PATH               = config.testScreenshotsDir;
+const SCREENSHOTS_META_PATH          = config.testScreenshotsMetaFile;
 const THUMBNAILS_DIR_NAME            = 'thumbnails';
 const ERRORS_DIR_NAME                = 'errors';
 const TASK_DIR_RE                    = /\d{4,4}-\d{2,2}-\d{2,2}_\d{2,2}-\d{2,2}-\d{2,2}/;
@@ -202,7 +203,7 @@ function checkScreenshotImages (forError, customPath, predicate, expectedScreens
     if (!isDirExists(SCREENSHOTS_PATH))
         return false;
 
-    const taskDirs = fs.readdirSync(SCREENSHOTS_PATH).filter(entry => !entry.endsWith('.json'));
+    const taskDirs = fs.readdirSync(SCREENSHOTS_PATH);
 
     if (!taskDirs || !taskDirs[0] || taskDirs.length !== 1)
         return false;
@@ -438,6 +439,8 @@ function removeDir (dirPath) {
 }
 
 exports.removeScreenshotDir = (dir = SCREENSHOTS_PATH) => removeDir(dir);
+
+exports.removeScreenshotsMetaFile = (dir = SCREENSHOTS_META_PATH) => del(dir);
 
 exports.removeVideosDir = () => removeDir(VIDEOS_PATH);
 
