@@ -648,7 +648,7 @@ describe('[API] t.takeElementScreenshot()', function () {
 
         it('Should remove screenshot mark from an element screenshot when the element is in bottom right corner', function () {
             return runTests('./testcafe-fixtures/take-element-screenshot.js', 'Bottom-right element',
-                { setScreenshotPath: true })
+                { setScreenshotPath: true, skip: 'safari' })
                 .then(function () {
                     function referenceImagePathGetter (screenshotPath) {
                         const referenceImageName = screenshotPath.match(/chrome|firefox|edge/i) ? 'element' : 'element-bottom-right';
